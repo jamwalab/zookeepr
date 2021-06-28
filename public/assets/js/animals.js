@@ -5,6 +5,7 @@ const printResults = resultArr => {
   console.log(resultArr);
 
   const animalHTML = resultArr.map(({ id, name, personalityTraits, species, diet }) => {
+    //substring is string like splice is for array (basically capitalizing first letter here)
     return `
   <div class="col-12 col-md-5 mb-3">
     <div class="card p-3" data-id=${id}>
@@ -30,7 +31,17 @@ const getAnimals = (formData = {}) => {
   });
 
   console.log(queryUrl);
-
+  fetch(queryUrl)
+    .then(response => {
+      if (!response.ok) {
+        return alert('Error: ' + response.statusText);
+      }
+      return response.json();
+    })
+    .then(animalData => {
+      console.log(animalData);
+      printResults(animalData);
+    });
 };
 
 const handleGetAnimalsSubmit = event => {
@@ -54,7 +65,7 @@ const handleGetAnimalsSubmit = event => {
   for (let i = 0; i < selectedTraits.length; i += 1) {
     personalityTraitArr.push(selectedTraits[i].value);
   }
-
+  
   const personalityTraits = personalityTraitArr.join(',');
 
   const animalObject = { diet, personalityTraits };

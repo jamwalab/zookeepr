@@ -81,7 +81,7 @@ function validateAnimal(animal) {
 
 app.get('/api/animals', (req,res) => {
     let results = animals;
-    console.log(req.query)
+
     if (req.query) {
         results = filterByQuery(req.query, results);
     }
@@ -108,10 +108,25 @@ app.post('/api/animals', (req,res) => {
         const animal = createNewAnimal(req.body, animals);
         res.json(animal);
     }   
-})
+});
+
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname,'./public/index.html'));
-})
+});
+
+app.get('/animals', (req,res) => {
+  res.sendFile(path.join(__dirname,'./public/animals.html'));
+});
+
+app.get('/zookeepers', (req,res) => {
+  res.sendFile(path.join(__dirname,'./public/zookeepers.html'));
+});
+
+//* always comes last
+app.get('*', (req,res) => {
+  res.sendFile(path.join(__dirname,'./public/index.html'));
+});
+
 app.listen(PORT, () => {
     console.log('API server now on port 3001!!');
-})
+});
