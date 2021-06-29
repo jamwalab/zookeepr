@@ -1,6 +1,10 @@
+//Just like hrml, this will read index.js by default
+const apiRoutes = require('./routes/apiRoutes');
+const htmlRoutes = require('./routes/htmlRoutes');
+
 const express = require('express');
-const {animals} = require('./data/animals');
-const fs = require('fs');
+//const {animals} = require('./data/animals');
+//const fs = require('fs');
 const path = require('path');
 const PORT = process.env.PORT || 3001;
 
@@ -10,122 +14,15 @@ app.use(express.urlencoded({ extended: true }));
 //parse incoming json data
 app.use(express.json());
 //front end html request have access to js and style
+//Use before Api ones
 app.use(express.static('public'));
+app.use('/api', apiRoutes);
+app.use('/', htmlRoutes);
 
-function filterByQuery(query, animalArray) {
-    let personalityTraitsArray = [];
-    //Save animalArray as filtered results
-    let filteredResults = animalArray;
-    if (query.personalityTraits) {
-        //Save it in dedicated array
-        //if its a string, place it in array
-        if (typeof query.personalityTraits === 'string') {
-            personalityTraitsArray = [query.personalityTraits];
-        } else {
-            personalityTraitsArray = query.personalityTraits;
-        }
-        //Loop through each personality trait in the array
-        personalityTraitsArray.forEach(trait => {
-            // Check the trait against each animal in the filteredResults array.
-            // Remember, it is initially a copy of the animalsArray,
-            // but here we're updating it for each trait in the .forEach() loop.
-            // For each trait being targeted by the filter, the filteredResults
-            // array will then contain only the entries that contain the trait,
-            // so at the end we'll have an array of animals that have every one 
-            // of the traits when the .forEach() loop is finished.
-            filteredResults = filteredResults.filter(animal => animal.personalityTraits.indexOf(trait) !== -1);
-        });
-    }
-    if (query.diet) {
-        filteredResults = filteredResults.filter(animal => animal.diet === query.diet);
-    }
-    if (query.species) {
-        filteredResults = filteredResults.filter(animal => animal.species === query.species);
-    }
-    if (query.name) {
-        filteredResults = filteredResults.filter(animal => animal.name === query.name);
-    }
-    return filteredResults;
-};
-
-function findById (id, animalArray) {
-    const result = animalArray.filter(animal => animal.id === id)[0];
-    return result;
-};
-
-function createNewAnimal(body, animalsArray) {
-    const animal = body;
-    animalsArray.push(animal);
-    fs.writeFileSync(
-        path.join(__dirname,'./data/animals.json'),
-        JSON.stringify({animals: animalsArray}, null, 2)
-    )
-    return animal;
-}
-
-function validateAnimal(animal) {
-    if (!animal.name || typeof animal.name !== 'string') {
-        return false;
-    }
-    if (!animal.species || typeof animal.species !== 'string') {
-        return false;
-    }
-    if (!animal.diet || typeof animal.diet !== 'string') {
-        return false;
-    }
-    if (!animal.personalityTraits || !Array.isArray(animal.personalityTraits)) {
-        return false;
-    }
-    return true;
-}
-
-app.get('/api/animals', (req,res) => {
-    let results = animals;
-
-    if (req.query) {
-        results = filterByQuery(req.query, results);
-    }
-    res.json(results);
-})
-
-app.get('/api/animals/:id', (req,res) => {
-    const result = findById(req.params.id, animals);
-    if (result) {
-        res.json(result);
-    }
-    else {
-        res.sendStatus(404);
-    }
-});
-
-app.post('/api/animals', (req,res) => {
-    req.body.id = animals.length.toString();
-    //req.body is where the incoming request be
-    if (!validateAnimal(req.body)) {
-        res.status(400).send('Animal is not properly formatted!!');
-    }
-    else {
-        const animal = createNewAnimal(req.body, animals);
-        res.json(animal);
-    }   
-});
-
-app.get('/', (req,res) => {
-    res.sendFile(path.join(__dirname,'./public/index.html'));
-});
-
-app.get('/animals', (req,res) => {
-  res.sendFile(path.join(__dirname,'./public/animals.html'));
-});
-
-app.get('/zookeepers', (req,res) => {
-  res.sendFile(path.join(__dirname,'./public/zookeepers.html'));
-});
-
-//* always comes last
-app.get('*', (req,res) => {
-  res.sendFile(path.join(__dirname,'./public/index.html'));
-});
+/////Way to put static later
+//app.use('/api/index.js', apiRoutes);
+//app.use('/index.js', htmlRoutes);
+//app.use(express.static(path.join(__dirname, '/public')));
 
 app.listen(PORT, () => {
     console.log('API server now on port 3001!!');
